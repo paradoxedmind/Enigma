@@ -9,8 +9,25 @@ edition = "2021"
 [dependencies]
 bootloader = "0.9.23"
 spin = "0.9.8"
+uart_16550 = "0.3.0"
 volatile = "0.2.6"
+x86_64 = "0.14.11"
 
 [dependencies.lazy_static]
 version = "1.4"
 features = ["spin_no_std"]
+
+[package.metadata.bootimage] 
+# When a value is written to I/O port,it causes QEMU to exit with exit status (value << 1) | 1.
+# -serial redirects output to stdout
+test-args = [
+    "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04","-serial","stdio",
+    "-display", "none"
+]
+# Because code other than 0 is consider a failure but QEMU return 33 ( (0x10 << 1) | 1 ) on Sucess
+test-success-exit-code = 33 
+#test-timeout = 300 # test fails after times out which is 5 min can be configured
+
+[[test]]
+name = "should_panic"
+harness = false # To Disable test_runner so test works like normal executable

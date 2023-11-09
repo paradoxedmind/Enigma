@@ -5,3 +5,7 @@ build-std-features = ["compiler-builtins-mem"]
 
 [build] # Custom Target
 target = "x86_64-arcane.json"
+
+[target.'cfg(target_os = "none")'] 
+# This command links given executable with project's bootloader dependency and then launches QEMU
+runner = "bootimage runner"
