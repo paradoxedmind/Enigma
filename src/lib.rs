@@ -3,11 +3,17 @@
 #![feature(custom_test_frameworks)] // Default Test Framework will not work
 #![test_runner(crate::test_runner)] // Test Runner which runs our tests
 #![reexport_test_harness_main = "test_main"] // Test require main_function
+#![feature(abi_x86_interrupt)]
 
 pub mod serial;
 pub mod vga_buffer;
+pub mod interrupts;
 
 use core::panic::PanicInfo;
+
+pub fn init() {
+    interrupts::init_idt();
+}
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 #[repr(u32)]
@@ -63,6 +69,7 @@ fn trivial_assertion() {
 #[cfg(test)]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    init();
     test_main();
     loop {}
 }

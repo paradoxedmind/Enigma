@@ -4,6 +4,7 @@
 #![test_runner(arcane::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+
 mod vga_buffer;
 mod serial;
 
@@ -14,6 +15,10 @@ use core::panic::PanicInfo;
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     println!("Hello World{}","!!");
+
+    arcane::init(); // Load IDT
+
+    x86_64::instructions::interrupts::int3(); // Invoke breakpoint exception
 
     #[cfg(test)]
     test_main();
@@ -30,7 +35,7 @@ fn panic(info: &PanicInfo) -> ! {
     loop {}
 }
 
-#[cfg(test)]
+#[cfg(test)] // This panic handler for test mode
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     arcane::test_panic_handler(info)
