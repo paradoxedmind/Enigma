@@ -31,3 +31,7 @@ test-success-exit-code = 33
 [[test]]
 name = "should_panic"
 harness = false # To Disable test_runner so test works like normal executable
+
+[[test]]
+name = "stack_overflow"
+harness = false 

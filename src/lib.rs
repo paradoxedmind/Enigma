@@ -5,21 +5,24 @@
 #![reexport_test_harness_main = "test_main"] // Test require main_function
 #![feature(abi_x86_interrupt)]
 
+pub mod gdt;
+pub mod interrupts;
 pub mod serial;
 pub mod vga_buffer;
-pub mod interrupts;
 
 use core::panic::PanicInfo;
 
 pub fn init() {
+    gdt::init();
     interrupts::init_idt();
 }
 
-#[derive(Debug,Clone,Copy,PartialEq,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
-pub enum QemuExitCode { // Exit with exit code different from QEMU default code to differ test
+pub enum QemuExitCode {
+    // Exit with exit code different from QEMU default code to differ test
     Success = 0x10, // 33 after exit
-    Failed = 0x11, // 35 after exit
+    Failed = 0x11,  // 35 after exit
 }
 
 pub fn exit_qemu(exit_code: QemuExitCode) {
@@ -36,9 +39,9 @@ pub trait Testable {
     fn run(&self) -> ();
 }
 
-impl <T: Fn()> Testable for T {
+impl<T: Fn()> Testable for T {
     fn run(&self) {
-        serial_print!("{}...\t",core::any::type_name::<T>()); // Function name
+        serial_print!("{}...\t", core::any::type_name::<T>()); // Function name
         self();
         serial_println!("[ok]");
     }
@@ -54,16 +57,15 @@ pub fn test_runner(tests: &[&dyn Testable]) {
 
 pub fn test_panic_handler(info: &PanicInfo) -> ! {
     serial_println!("[failed]\n");
-    serial_println!("Error: {}\n",info);
+    serial_println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
     loop {}
 }
 
 #[test_case]
 fn trivial_assertion() {
-    assert_eq!(1,1);
+    assert_eq!(1, 1);
 }
-
 
 /// Entry Point for `cargo test`
 #[cfg(test)]

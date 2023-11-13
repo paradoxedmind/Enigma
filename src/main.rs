@@ -4,9 +4,8 @@
 #![test_runner(arcane::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-
-mod vga_buffer;
 mod serial;
+mod vga_buffer;
 
 use core::panic::PanicInfo;
 
@@ -14,18 +13,15 @@ use core::panic::PanicInfo;
 // entry point because linker looks for function name `_start`
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("Hello World{}","!!");
+    println!("Hello World{}", "!!");
 
-    arcane::init(); // Load IDT
-
-    x86_64::instructions::interrupts::int3(); // Invoke breakpoint exception
+    arcane::init(); // Load GDT and IDT
 
     #[cfg(test)]
     test_main();
-    
+
     loop {}
 }
-
 
 /// This function is called on Panic
 #[cfg(not(test))]
