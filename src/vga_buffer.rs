@@ -6,7 +6,7 @@ use spin::Mutex; // Basic Mutex where thread simply try to lock it again and aga
 lazy_static! { // This Initalize itself when accessed first time instead of compiled time
     pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         col_position: 0,
-        color_code: ColorCode::new(Color::Green,Color::Black),
+        color_code: ColorCode::new(Color::LightGray,Color::Black),
         buffer: unsafe { &mut *( 0xb8000 as *mut Buffer )  },
     });
 }
@@ -151,10 +151,17 @@ macro_rules! println {
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
+// Prints given formatted string to VGA text buffer:w
+// through global `WRITER` instance
 #[doc(hidden)] // Hide it from generated documentation as it is private implementation detail
 pub fn _print(args: fmt::Arguments) {
+    use x86_64::instructions::interrupts;
     use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+
+    interrupts::without_interrupts(|| {
+        // Runs closure code in interrupt-free environment, avoiding the deadlock
+        WRITER.lock().write_fmt(args).unwrap();
+    })
 }
 
 
@@ -172,10 +179,16 @@ fn test_println_many() {
 
 #[test_case]
 fn test_println_output() {
+    use core::fmt::Write;
+    use x86_64::instructions::interrupts;
+
     let s = "Some test string that fits on a single line";
-    println!("{}", s);
-    for (i, c) in s.chars().enumerate() {
-        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
-        assert_eq!(char::from(screen_char.ascii_character), c);
-    }
+    interrupts::without_interrupts(|| {
+        let mut writer = WRITER.lock();
+        writeln!(writer,"\n{}", s).expect("writeln failed");
+        for (i, c) in s.chars().enumerate() {
+            let screen_char = writer.buffer.chars[BUFFER_HEIGHT - 2][i].read();
+            assert_eq!(char::from(screen_char.ascii_character), c);
+        }
+    });
 }

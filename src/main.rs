@@ -1,7 +1,7 @@
 #![no_std] // Disable Standard Library Linking
 #![no_main] // Disable Rust-level Entry Points
 #![feature(custom_test_frameworks)]
-#![test_runner(arcane::test_runner)]
+#![test_runner(enigma::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 mod serial;
@@ -15,12 +15,12 @@ use core::panic::PanicInfo;
 pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!!");
 
-    arcane::init(); // Load GDT and IDT
+    enigma::init(); // Load GDT and IDT
 
     #[cfg(test)]
     test_main();
 
-    loop {}
+    enigma::hlt_loop(); // Instead of endless loop, hlt till next interrupt
 }
 
 /// This function is called on Panic
@@ -34,5 +34,5 @@ fn panic(info: &PanicInfo) -> ! {
 #[cfg(test)] // This panic handler for test mode
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    arcane::test_panic_handler(info)
+    enigma::test_panic_handler(info)
 }

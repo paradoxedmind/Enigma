@@ -1,5 +1,5 @@
 [package]
-name = "arcane"
+name = "enigma"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,9 +8,11 @@ edition = "2021"
 
 [dependencies]
 bootloader = "0.9.23"
+pc-keyboard = "0.7.0"
+pic8259 = "0.10.4"
 spin = "0.9.8"
 uart_16550 = "0.3.0"
-volatile = "0.2.6"
+volatile = "0.2.6" 
 x86_64 = "0.14.11"
 
 [dependencies.lazy_static]

@@ -15,6 +15,19 @@ use core::panic::PanicInfo;
 pub fn init() {
     gdt::init();
     interrupts::init_idt();
+    unsafe {
+        // Intialize PICs could cause undefined behaviour if PIC is misconfigured
+        interrupts::PICS.lock().initialize();
+    };
+    x86_64::instructions::interrupts::enable(); // Enable External Interrupts
+}
+
+pub fn hlt_loop() -> ! {
+    loop {
+        // Halt the CPU until next interrupt arrives, allows CPU to enter sleep state consuming
+        // less energy
+        x86_64::instructions::hlt();
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -73,7 +86,7 @@ fn trivial_assertion() {
 pub extern "C" fn _start() -> ! {
     init();
     test_main();
-    loop {}
+    hlt_loop();
 }
 
 #[cfg(test)]
