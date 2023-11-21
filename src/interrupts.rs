@@ -1,9 +1,9 @@
-use crate::{gdt, print, println};
+use crate::{gdt, print, println, hlt_loop};
 use lazy_static::lazy_static;
 use pc_keyboard::{Keyboard, layouts, ScancodeSet1, HandleControl, DecodedKey};
 use pic8259::ChainedPics; // Abstraction for Primary/Secondary PICs
 use spin::Mutex;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
 
 // offsets for PICs in range 32-47 because default are already occupied by CPU Exceptions
 pub const PIC_1_OFFSET: u8 = 32;
@@ -29,7 +29,9 @@ lazy_static! {
         // Register Keyboard Interrupt Handler
         idt[InterruptIndex::Keyboard.as_usize()]
             .set_handler_fn(keyboard_interrupt_handler);
-
+        
+        // Setting Page Fault Handler
+        idt.page_fault.set_handler_fn(page_fault_handler);
         idt
     };
 }
@@ -41,6 +43,17 @@ pub fn init_idt() {
 // `x86-interrupt` FFI Ensures calling convention appropriate for exception handling
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
     println!("[EXCEPTION] BREAKPOINT\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn page_fault_handler(stack_frame: InterruptStackFrame, error_code: PageFaultErrorCode) {
+    use x86_64::registers::control::Cr2;
+
+    println!("[EXCEPTION] PAGE FAULT");
+    println!("Accessed Address: {:?}",Cr2::read()); // Cr2 Register containes address that caused Fault        
+    println!("Error Code: {:?}", error_code);
+    println!("{:#?}",stack_frame);
+
+    hlt_loop(); // Continue only after resolving page Fault
 }
 
 extern "x86-interrupt" fn double_fault_handler(

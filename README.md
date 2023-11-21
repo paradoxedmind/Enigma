@@ -1,4 +1,4 @@
- # Arcane
+ # Enigma
 ## Operating System in Rust
 
 - [x] [A Freestanding Rust Binary](https://os.phil-opp.com/freestanding-rust-binAary/) : Created Rust executable that does not link the standard library and Makes it possible to run it on bare metal without an underlying operating system.
@@ -8,7 +8,7 @@
 - [x] [CPU Exceptions](https://os.phil-opp.com/cpu-exceptions/) : Used `x86_64` crate to introduce Exception handling. Crate provides `x86-interrupt` calling convention and [InterruptDescriptorTable](https://docs.rs/x86_64/0.14.2/x86_64/structures/idt/struct.InterruptDescriptorTable.html) type which made handling process easier. Currently it just caught `breakpoint` exception (int3 instruction) and returns from it.
 - [x] [Double Faults](https://os.phil-opp.com/double-fault-exceptions/) : Learned what a Double Fault is and under which conditions it occurs. Added Basic double fault handler that prints an error message and added integration test for it. Also enabled hardware-supported stack switching on double fault exceptions so that it also works on stack overflow. Also learned about TSS(Task State Segment), IST(Interrupt Stack Table) and GDT(Global Descriptor Table).
 - [x] [Hardware Interrupts](https://os.phil-opp.com/hardware-interrupts/) : Enabled and handled External Interrupts. learned 8259 PIC and its primary/secondary layout, the remapping of the interrupt numbers, and the "end of interrupt" signal. Implemented handlers for the hardware timer and keyboard and added `hlt` instruction, which halts the CPU until the next interrupt.
-- [ ] [Introduction to Paging](https://os.phil-opp.com/paging-introduction/)
+- [x] [Introduction to Paging](https://os.phil-opp.com/paging-introduction/) : Learned about Memory Protection techniques: segmentation and paging. Paging stores mapping info for pages in page tables with one or more levels. The x86-64 uses 4-level page tables and a page size of 4KiB. The hardware automatically walks the page tables and caches the resulting translations in the translation lookaside buffer (TLB). This buffer is not updated transparently and needs to be flushed manually on page table changes. Learned that Our kernel already runs on top of paging by bootloader and illegal memory access cause page fault exceptions. Now We can't access active page table because `Cr3` register stores physical address of Table that we can't access directly from our kernel.
 - [ ] [Paging Implementation](https://os.phil-opp.com/paging-implementation/)
 - [ ] [Heap Allocation](https://os.phil-opp.com/heap-allocation/)
 - [ ] [Allocator Designs](https://os.phil-opp.com/allocator-designs/)
