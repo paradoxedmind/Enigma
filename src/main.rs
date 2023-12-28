@@ -7,28 +7,45 @@
 mod serial;
 mod vga_buffer;
 
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 
-// Entry point which uses C calling Convention
-// entry point because linker looks for function name `_start`
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!!");
+// Entry Point Macro defines `_start` entry point for us and also checks that arguments passed are
+// correct because our entry point will be called externally and our function signature will not be
+// checked
+entry_point!(kernel_main);
 
+// BootInfo has info about `memory_map`(available and reserved memory regions) and
+// `physical_memory_offset` (Adding this offset to physical address, we get Virtual Address)
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use enigma::memory;
+    use enigma::memory::BootInfoFrameAllocator;
+    use x86_64::VirtAddr;
+
+    println!("Hello World{}", "!!");
     enigma::init(); // Load GDT and IDT
 
-    use x86_64::registers::control::Cr3;
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let _mapper = unsafe { memory::init(phys_mem_offset) };
+    let _frame_allocator = unsafe {
+        BootInfoFrameAllocator::init(&boot_info.memory_map)
+    };
 
-    let (level_4_page_table, _) = Cr3::read();
-    println!(
-        "Level 4 Page Table at: {:?}",
-        level_4_page_table.start_address()
-    );
+    // FOR TESTING MAPPING OF PAGES TO FRAME
+    //// Map an unused page
+    //let page = Page::containing_address(VirtAddr::new(0xdeadbeaf000));
+    //memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
+
+    //// Write The String `New!` to the screen through the new mapping
+    //let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
+    //unsafe {
+    //    page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e);
+    //}
 
     #[cfg(test)]
     test_main();
 
-    enigma::hlt_loop(); // Instead of endless loop, hlt till next interrupt
+    enigma::hlt_loop(); // Instead of endless loop, halt till next interrupt
 }
 
 /// This function is called on Panic

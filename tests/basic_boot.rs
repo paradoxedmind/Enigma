@@ -1,11 +1,11 @@
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(arcane::test_runner)]
+#![test_runner(enigma::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use arcane::println;
+use enigma::println;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -16,7 +16,7 @@ pub extern "C" fn _start() -> ! {
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    arcane::test_panic_handler(info)   
+    enigma::test_panic_handler(info)
 }
 
 #[test_case]

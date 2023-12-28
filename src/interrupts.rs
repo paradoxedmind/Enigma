@@ -64,8 +64,6 @@ extern "x86-interrupt" fn double_fault_handler(
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    print!(".");
-
     unsafe {
         // PICs require `end of interrupt` signal from handler so that it can know interrupt was
         // handled and system is ready to receive next interrupt

@@ -2,8 +2,8 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 
-use arcane::{exit_qemu, serial_print, serial_println, QemuExitCode};
 use core::panic::PanicInfo;
+use enigma::{exit_qemu, serial_print, serial_println, QemuExitCode};
 use lazy_static::lazy_static;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
@@ -11,7 +11,7 @@ use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 pub extern "C" fn _start() -> ! {
     serial_print!("stack_overflow::stack_overflow...\t");
 
-    arcane::gdt::init();
+    enigma::gdt::init();
     init_test_idt();
 
     stack_overflow();
@@ -27,7 +27,7 @@ fn stack_overflow() {
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    arcane::test_panic_handler(info)
+    enigma::test_panic_handler(info)
 }
 
 lazy_static! {
@@ -36,7 +36,7 @@ lazy_static! {
         unsafe {
             idt.double_fault
                 .set_handler_fn(test_double_fault_handler)
-                .set_stack_index(arcane::gdt::DOUBLE_FAULT_IST_INDEX);
+                .set_stack_index(enigma::gdt::DOUBLE_FAULT_IST_INDEX);
         }
         idt
     };

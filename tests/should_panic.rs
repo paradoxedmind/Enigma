@@ -2,7 +2,7 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use arcane::{QemuExitCode, exit_qemu, serial_println,serial_print};
+use enigma::{QemuExitCode, exit_qemu, serial_println,serial_print};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
