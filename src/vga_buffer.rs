@@ -1,12 +1,12 @@
 use core::fmt;
-use volatile::Volatile; //To mark our read/write as volatile(means they have side effect and should not be optimized)
 use lazy_static::lazy_static;
-use spin::Mutex; // Basic Mutex where thread simply try to lock it again and again in loop, burning CPU time until  mutex is free again
+use spin::Mutex;
+use volatile::Volatile; //To mark our read/write as volatile(means they have side effect and should not be optimized) // Basic Mutex where thread simply try to lock it again and again in loop, burning CPU time until  mutex is free again
 
 lazy_static! { // This Initalize itself when accessed first time instead of compiled time
     pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         col_position: 0,
-        color_code: ColorCode::new(Color::LightGray,Color::Black),
+        color_code: ColorCode::new(Color::LightRed,Color::Black),
         buffer: unsafe { &mut *( 0xb8000 as *mut Buffer )  },
     });
 }
@@ -155,15 +155,14 @@ macro_rules! println {
 // through global `WRITER` instance
 #[doc(hidden)] // Hide it from generated documentation as it is private implementation detail
 pub fn _print(args: fmt::Arguments) {
-    use x86_64::instructions::interrupts;
     use core::fmt::Write;
+    use x86_64::instructions::interrupts;
 
     interrupts::without_interrupts(|| {
         // Runs closure code in interrupt-free environment, avoiding the deadlock
         WRITER.lock().write_fmt(args).unwrap();
     })
 }
-
 
 #[test_case]
 fn test_println_simple() {
@@ -185,7 +184,7 @@ fn test_println_output() {
     let s = "Some test string that fits on a single line";
     interrupts::without_interrupts(|| {
         let mut writer = WRITER.lock();
-        writeln!(writer,"\n{}", s).expect("writeln failed");
+        writeln!(writer, "\n{}", s).expect("writeln failed");
         for (i, c) in s.chars().enumerate() {
             let screen_char = writer.buffer.chars[BUFFER_HEIGHT - 2][i].read();
             assert_eq!(char::from(screen_char.ascii_character), c);

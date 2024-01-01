@@ -5,11 +5,14 @@
 #![reexport_test_harness_main = "test_main"] // Test require main_function
 #![feature(abi_x86_interrupt)]
 
+extern crate alloc;
+
+pub mod allocator;
 pub mod gdt;
 pub mod interrupts;
+pub mod memory;
 pub mod serial;
 pub mod vga_buffer;
-pub mod memory;
 
 use core::panic::PanicInfo;
 
