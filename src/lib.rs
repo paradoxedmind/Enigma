@@ -4,6 +4,7 @@
 #![test_runner(crate::test_runner)] // Test Runner which runs our tests
 #![reexport_test_harness_main = "test_main"] // Test require main_function
 #![feature(abi_x86_interrupt)]
+#![feature(const_mut_refs)]
 
 extern crate alloc;
 
